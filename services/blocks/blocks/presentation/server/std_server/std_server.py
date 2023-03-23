@@ -54,10 +54,10 @@ class StdServer(Server):
        uvicorn.run(app=self.app, host=host, port=port)
         
     
-    def serve(self) -> None:
+    def serve(self, *, host : str, port : int) -> None:
         self.build_app()
         self.loop.run_until_complete(asyncio.gather(
             self.block_streamer.stream(),
-            self.run_server()
+            self.run_server(host=host,port=port)
         ))
       
