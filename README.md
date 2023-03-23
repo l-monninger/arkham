@@ -2,6 +2,22 @@
 You can find the site here:
 [https://l-monninger-arkham.netlify.app/](https://l-monninger-arkham.netlify.app/). Viewing all requested columns in the table will likely require side-scrolling.
 
+## Runnning locally
+To run locally, you will need to run the SPA at `fronts/web` and the blocks service at `services/blocks`.
+
+### `fronts/web`
+Once you have installed the required modules, specify the `VITE_BLOCKS_SOCKET` environment variable, pointing it at the domain, port, and path of your websocket. You can do this with a `.env` file if you like. Then you can start the client. 
+```
+yarn dev
+```
+
+### `services/blocks`
+Once you have installed the required packages and configured your environment...
+```
+python run.py
+```
+You may specif the port with `PORT` environment variable.
+
 ## Responses
 ### 1. How does your solution work?
 #### Backend
