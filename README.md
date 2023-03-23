@@ -1,9 +1,10 @@
 # arkham
-[https://l-monninger-arkham.netlify.app/](https://l-monninger-arkham.netlify.app/)
+You can find the site here:
+[https://l-monninger-arkham.netlify.app/](https://l-monninger-arkham.netlify.app/). Viewing all requested columns in the table will likely require side-scrolling.
 
-### Responses
-#### 1. How does your solution work?
-##### Backend
+## Responses
+### 1. How does your solution work?
+#### Backend
 A single FastAPI (Python) server listens to new blocks from a single async iterator. These blocks are broadcast amongst connected websocket clients. 
 
 When a client first connects, the last five blocks will be sent to it from an in-memory buffer. 
@@ -12,36 +13,36 @@ The concurrency model is based entirely on coroutines.
 
 The backend is deployed as a container on Cloud Run.
 
-##### Frontend
+#### Frontend
 SPA is served using Netlify. A buffer is used to limit display to 5 blocks at a time, placing a relatively low ceiling on memory input.
 
-#### 2. How many hours did this take you?
+### 2. How many hours did this take you?
 Eight hours across three days.
-+1 hour understanding the API and thinking.
-+1 hour building toy examples.
-+2 hours building broadcasting and debugging.
-+2 hours fiddling with infrastructure that was not used.
-+1 hour fiddling with infrastrucutre that was used.
-+30 minutes on the frontend.
-+30 minutes on the writeup.
+- +1 hour understanding the API and thinking.
+- +1 hour building toy examples.
+- +2 hours building broadcasting and debugging.
+- +2 hours fiddling with infrastructure that was not used.
+- +1 hour fiddling with infrastrucutre that was used.
+- +30 minutes on the frontend.
+- +30 minutes on the writeup.
 
-#### 3. What went well? What went poorly?
-##### Well
+### 3. What went well? What went poorly?
+#### Well
 1. The broadcast design works well, limiting API connections and generally appearing quite scalable in limited testing.
 2. The concurrency model (coroutines) seems to do well, and outperformed multiprocessing and multithreading (ofc because it's python) in testing.
 3. Frontend was quick to implement.
 
-##### Poorly
+#### Poorly
 1. I may have overdone the software design on the backend; the whole backend could have easily been a single file. At the same time, however, I do actually prefer working with this kind of separation of concerns--even from an early stage.
 2. I originally wanted to try and showcase a new stack for which I'd been working on some tooling. This was not at all used and rather costly, particularly for infrastructure.
 3. Infrastucture as code efforts were abandoned.
 4. Doing this on vacation was not ideal.
 
-#### 4. What did you have trouble with?
+### 4. What did you have trouble with?
 1. Debugging infra for whatever reason was trickier than usual. Likely this was because of my environment.
 2. I played with a few different concurrency models on the backend and overlooked some silly things that I lost time debuggin.
 
-#### 5. What would you add to your solution if you had more time?
+### 5. What would you add to your solution if you had more time?
 1. Figure out how to do it faster.
 2. Tests and consideration for edge cases.
 3. Observability.
