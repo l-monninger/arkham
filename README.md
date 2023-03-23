@@ -39,12 +39,12 @@ Eight hours across three days.
 4. Doing this on vacation was not ideal.
 
 ### 4. What did you have trouble with?
-1. Debugging infra for whatever reason was trickier than usual. Likely this was because of my environment.
-2. I played with a few different concurrency models on the backend and overlooked some silly things that I lost time debuggin.
+1. Debugging infra for whatever reason was trickier than usual. Likely this was because of my (physical) environment.
+2. I played with a few different concurrency models on the backend, overlooked some silly things, and so lost time debugging.
 
 ### 5. What would you add to your solution if you had more time?
 1. Figure out how to do it faster.
-2. Tests and consideration for edge cases.
+2. Tests and better consideration for edge cases.
 3. Observability.
 4. Whatever my EM or PM tells me to work on.
 5. I probably would work on something else altogether.
