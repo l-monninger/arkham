@@ -9,6 +9,7 @@ import asyncio
 import nest_asyncio
 from pydantic import BaseModel, ValidationError
 import concurrent.futures
+from threading import Lock
 
 class AlchemyBlockResult(BaseModel):
     baseFeePerGas: str
@@ -68,6 +69,7 @@ class StdBlockMetaStream(BlockMetaStream):
     buffer : List[Any] = []
     max_buffer_size : int
     fill_pool : concurrent.futures.ThreadPoolExecutor
+    buffer_lock : Lock
     
     def __init__(self, *, max_buffer_size : int = 20) -> None:
         super().__init__()
@@ -79,6 +81,7 @@ class StdBlockMetaStream(BlockMetaStream):
         self.buffer = []
         self.max_buffer_size = max_buffer_size
         self.fill_pool = concurrent.futures.ThreadPoolExecutor()
+        self.buffer_lock = Lock()
         
     async def _connect(self)->None:
         self.ws = await client.connect(ALCHEMY_WS_URL).__aenter__()
@@ -93,9 +96,11 @@ class StdBlockMetaStream(BlockMetaStream):
         while True:
             try:
                 d = await self.ws.__aiter__().__anext__()
+                self.buffer_lock.acquire()
                 self.buffer.append(d)
                 if len(self.buffer) > self.max_buffer_size:
                     self.buffer = self.buffer[-self.max_buffer_size - 1]
+                self.buffer_lock.release()
             except ConnectionError as e:
                 try: 
                     await self.ws.close()
@@ -126,7 +131,9 @@ class StdBlockMetaStream(BlockMetaStream):
             if len(self.buffer) < 1:
                 continue
             try:
+                self.buffer_lock.acquire()
                 d = json.loads(self.buffer.pop(0))
+                self.buffer_lock.release()
                 Alchemy_block = AlchemyBlockMeta.parse_obj(d)
                 return BlockMeta(id=Alchemy_block.params.result.number)
             except ValidationError as e:
