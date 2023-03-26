@@ -1,5 +1,5 @@
 from ..server import Server
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, WebSocketException
 from blocks.logic.block_streamer.block_streamer import BlockStreamer
 from blocks.logic.block_streamer.std_block_streamer.std_block_streamer import StdBlockStreamer
 from blocks.util.block.block import Block
@@ -38,15 +38,19 @@ class StdServer(Server):
             await websocket.accept()
             
             async def send_to_client(block : Block):
-                await websocket.send_json(block.dict())
+                try:
+                    await websocket.send_json(block.dict())
+                except (WebSocketDisconnect, Exception) as e:
+                    print(e)
                 
             await self.block_streamer.subscribe(id=websocket, on_block=send_to_client)
             
             try:
                 while True:
                     await websocket.receive()
-            except (ConnectionError, ConnectionAbortedError) as e:
+            except (WebSocketDisconnect, Exception) as e:
                 await self.block_streamer.unsubscribe(id=websocket)
+                # await websocket.close()
         
            
          

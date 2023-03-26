@@ -21,7 +21,10 @@ class StdBlockStreamer(BlockStreamer):
     async def subscribe(self, *, id: Any, on_block: Callable[[Block], Awaitable[None]]):
         self.callbacks[id] = on_block
         for block in self.buff:
-            await on_block(block)
+            try:
+                await on_block(block)
+            except Exception as e:
+                print(e)
         
     async def unsubscribe(self, *, id: Any):
         del self.callbacks[id]
@@ -33,7 +36,9 @@ class StdBlockStreamer(BlockStreamer):
         await asyncio.gather(*crs)
             
     def update_buff(self, *, block : Block):
-        self.buff = [*self.buff[0:self.buff_size - 1], block]
+        if len(self.buff) > self.buff_size:
+             self.buff = self.buff[1:self.buff_size]
+        self.buff.append(block)
         
     async def stream(self):
         async for block in self.blocks_stream:
