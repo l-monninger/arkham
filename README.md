@@ -40,6 +40,7 @@ Eight hours across three days.
 #### 4. What did you have trouble with?
 1. Debugging infra for whatever reason was trickier than usual. Likely this was because of my environment.
 2. I played with a few different concurrency models on the backend and overlooked some silly things that I lost time debuggin.
+3. **NEW**: I notived over long runtimes there appeared to a be starvation problem between the reader and writer. I updated the concurrency model to include a fast reader which seems to have resolved this problem.
 
 #### 5. What would you add to your solution if you had more time?
 1. Figure out how to do it faster.

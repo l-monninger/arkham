@@ -1,5 +1,5 @@
 from ..block_meta_stream import BlockMetaStream, BlockMeta
-from typing import Awaitable, Optional, AsyncIterator
+from typing import Awaitable, Optional, AsyncIterator, List, Any
 import requests
 from websockets import client
 from asyncio import get_event_loop
@@ -8,6 +8,7 @@ from uuid import uuid4
 import asyncio
 import nest_asyncio
 from pydantic import BaseModel, ValidationError
+import concurrent.futures
 
 class AlchemyBlockResult(BaseModel):
     baseFeePerGas: str
@@ -64,14 +65,20 @@ class StdBlockMetaStream(BlockMetaStream):
     ws : Optional[client.WebSocketClientProtocol]
     started : bool
     uuid : str
+    buffer : List[Any] = []
+    max_buffer_size : int
+    fill_pool : concurrent.futures.ThreadPoolExecutor
     
-    def __init__(self) -> None:
+    def __init__(self, *, max_buffer_size : int = 20) -> None:
         super().__init__()
         self.ws = None
         self.started = False
         self.uuid = uuid4().hex
         self.loop = asyncio.get_event_loop()
         self.loop.run_until_complete(self._connect())
+        self.buffer = []
+        self.max_buffer_size = max_buffer_size
+        self.fill_pool = concurrent.futures.ThreadPoolExecutor()
         
     async def _connect(self)->None:
         self.ws = await client.connect(ALCHEMY_WS_URL).__aenter__()
@@ -79,8 +86,32 @@ class StdBlockMetaStream(BlockMetaStream):
     async def start(self)->None:
         if not self.started:
             await self.ws.send(json.dumps(mk_ws_payload(self.uuid)))
+            self.run_fill()
         self.started = True
         
+    async def fill(self)->None:
+        while True:
+            try:
+                d = await self.ws.__aiter__().__anext__()
+                self.buffer.append(d)
+            except ConnectionError as e:
+                try: 
+                    await self.ws.close()
+                except Exception as e:
+                    print("could not close ws")
+                await self._connect()
+                await self.start()
+    
+    def _run_fill(self):
+       self.loop.run_until_complete(self.fill())
+       
+    def run_fill(self):
+    
+            self.loop.run_in_executor(
+                self.fill_pool,
+                self._run_fill
+            )
+    
     def __aiter__(self) -> AsyncIterator[BlockMeta]:
         self.loop.run_until_complete(self.start())
         return self
@@ -90,12 +121,16 @@ class StdBlockMetaStream(BlockMetaStream):
         
         await self.start()
         while True:
+            if len(self.buffer) < 1:
+                continue
             try:
-                d = json.loads(await self.ws.__aiter__().__anext__())
+                d = json.loads(self.buffer.pop(0))
                 Alchemy_block = AlchemyBlockMeta.parse_obj(d)
                 return BlockMeta(id=Alchemy_block.params.result.number)
             except ValidationError as e:
                 continue
+            except ConnectionError as e:
+                pass
             
     async def __aenter__(self):
         return self      

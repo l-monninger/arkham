@@ -3,6 +3,7 @@ from typing import Callable, Awaitable, Any, List
 import weakref
 from blocks.data.block_stream.block_stream import BlockStream
 from blocks.data.block_stream.std_block_stream.std_block_stream import StdBlockStream
+import asyncio
 
 class StdBlockStreamer(BlockStreamer):
     
@@ -26,8 +27,10 @@ class StdBlockStreamer(BlockStreamer):
         del self.callbacks[id]
         
     async def handle_callbacks(self, *, block : Block):
+        crs = []
         for listener_key in self.callbacks:
-            await self.callbacks[listener_key](block)
+            crs.append(self.callbacks[listener_key](block))
+        await asyncio.gather(*crs)
             
     def update_buff(self, *, block : Block):
         self.buff = [*self.buff[0:self.buff_size - 1], block]
