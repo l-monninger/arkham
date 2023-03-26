@@ -45,7 +45,7 @@ class StdServer(Server):
             try:
                 while True:
                     await websocket.receive()
-            except Exception as e:
+            except (ConnectionError, ConnectionAbortedError) as e:
                 await self.block_streamer.unsubscribe(id=websocket)
         
            

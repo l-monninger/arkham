@@ -7,6 +7,7 @@ export const getBlocksConnection = ()=>{
 
 export const useBlocks = (size : number = 5) : Block[] =>{
 
+    const [needsSocket, setNeedsSocket] = useState(true);
     const [blocks, addBlock] = useReducer((oldBlocks : Block[], block : Block) : Block[]=>{
         const _blocks = oldBlocks.slice(0, size-1);
         console.log(block, oldBlocks, oldBlocks.slice(0, size-1));
@@ -19,13 +20,31 @@ export const useBlocks = (size : number = 5) : Block[] =>{
 
     useEffect(()=>{
 
-        const ws = getBlocksConnection();
-        ws.onmessage = (msg)=>{
-            
-            addBlock(JSON.parse(msg.data) as Block)
+        let timeout : number | undefined = undefined;
+        
+        if(needsSocket){
+
+            let ws = getBlocksConnection();
+            ws.onmessage = (msg)=>{
+                
+                addBlock(JSON.parse(msg.data) as Block)
+            }
+            ws.onclose = ()=>{
+                
+                timeout = setTimeout(()=>{
+                    setNeedsSocket(true)
+                }, 500);
+                
+            }   
+    
+            setNeedsSocket(false)
         }
 
-    }, [])
+        return ()=>{
+            if(timeout) clearTimeout(timeout);
+        }
+
+    }, [needsSocket])
 
     return blocks
 }

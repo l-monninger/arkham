@@ -94,6 +94,8 @@ class StdBlockMetaStream(BlockMetaStream):
             try:
                 d = await self.ws.__aiter__().__anext__()
                 self.buffer.append(d)
+                if len(self.buffer) > self.max_buffer_size:
+                    self.buffer = self.buffer[-self.max_buffer_size - 1]
             except ConnectionError as e:
                 try: 
                     await self.ws.close()
