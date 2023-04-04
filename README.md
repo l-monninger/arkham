@@ -2,6 +2,8 @@
 You can find the site here:
 [https://l-monninger-arkham.netlify.app/](https://l-monninger-arkham.netlify.app/). Viewing all requested columns in the table will likely require side-scrolling.
 
+**NOTE**: as of 04/04 websocket connections to Alchemy using the provided token are returning a `403` error code. This was first reported in container health checks on 04/02.
+
 ## Runnning locally
 To run locally, you will need to run the SPA at `fronts/web` and the blocks service at `services/blocks`.
 
